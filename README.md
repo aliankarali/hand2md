@@ -28,7 +28,18 @@ scripts/download-model.sh        # one-time, ~3 GB → ~/Developer/models/Qwen3-
 .venv/bin/hand2md *.jpg -o out/               # one .md per image
 .venv/bin/hand2md scan.jpg -o scan.md         # single file
 .venv/bin/hand2md --engine vision scan.jpg    # Apple Vision only
+.venv/bin/hand2md --line scan.jpg             # keep every line of the page as its own line
 ```
+
+### Line layout
+
+By default (`--paragraphs`) lines on the page are joined into paragraphs. A new paragraph starts only after a visibly larger gap or an indented first line. The model transcribes line by line and marks paragraph breaks; the joining is done in code afterwards, so the text itself is never rewritten.
+
+- Hyphenation at line ends is undone (`Som-` + `merfest` → `Sommerfest`); compounds (`E-` + `Mail` → `E-Mail`) and suspended hyphens (`Kunden- und …`) are kept.
+- Headings, list items, checkboxes, tables and code are never merged; a list item absorbs its own wrapped continuation lines.
+- Lines with no gap between them are joined even if they were separate notes (`Viele Grüße,` + `Tom` → `Viele Grüße, Tom`). Use `--line` for such pages.
+
+With `--line`, every line on the page becomes its own line in the output (paragraph breaks are still marked with a blank line).
 
 Progress and timing go to stderr (`-q` silences them). Exit code is 1 if any image failed.
 
@@ -46,7 +57,13 @@ sandbox-exec -p '(version 1)(allow default)(deny network-outbound (remote ip))' 
 
 ## Samples
 
-`samples/` holds two synthetic test pages (fictional text set in macOS handwriting-style fonts), useful as a smoke test. Real handwriting is harder; measure accuracy on your own pages before relying on the output.
+`samples/` holds three synthetic test pages (fictional text set in macOS handwriting-style fonts), useful as a smoke test; `brief.jpg` exercises paragraph detection (indents, gaps, hyphenation). Real handwriting is harder; measure accuracy on your own pages before relying on the output.
+
+## Tests
+
+```bash
+.venv/bin/python -m unittest discover -s tests
+```
 
 ## License
 

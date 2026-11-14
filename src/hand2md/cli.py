@@ -29,6 +29,13 @@ def _parse(argv) -> argparse.Namespace:
                    help="output directory (one .md per image), or a .md file for a single image; default: stdout")
     p.add_argument("--engine", choices=("auto", "qwen", "vision"), default="auto",
                    help="auto = Qwen3-VL, falling back to Apple Vision on failure (default: auto)")
+    layout = p.add_mutually_exclusive_group()
+    layout.add_argument("--paragraphs", dest="line", action="store_false",
+                        help="join lines into paragraphs; a new paragraph starts only after a visible gap "
+                             "or an indented first line (default)")
+    layout.add_argument("--line", dest="line", action="store_true",
+                        help="keep every line on the page as its own line")
+    p.set_defaults(line=False)
     p.add_argument("--model", type=Path, default=Path(os.environ.get("HAND2MD_MODEL", DEFAULT_MODEL)),
                    help=f"local model folder (default: $HAND2MD_MODEL or {DEFAULT_MODEL})")
     p.add_argument("--max-side", type=int, default=1600,
@@ -58,6 +65,7 @@ def main(argv=None) -> int:
     args = _parse(argv)
 
     from .imageprep import SUPPORTED_SUFFIXES, load_and_resize
+    from .reflow import reflow
 
     for img in args.images:
         if not img.is_file():
@@ -105,8 +113,10 @@ def main(argv=None) -> int:
                 t0 = time.perf_counter()
                 markdown, engine = vision.transcribe(image), "vision"
                 info = f"{time.perf_counter() - t0:.1f}s"
-                if fallback_reason:
-                    markdown = f"<!-- hand2md: Apple Vision fallback ({fallback_reason}) -->\n\n{markdown}"
+            if not args.line:
+                markdown = reflow(markdown)
+            if engine == "vision" and fallback_reason:
+                markdown = f"<!-- hand2md: Apple Vision fallback ({fallback_reason}) -->\n\n{markdown}"
         except Exception as e:  # noqa: BLE001
             failures += 1
             _log(f"{label}: error: {e}", False)

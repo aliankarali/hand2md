@@ -15,7 +15,8 @@ Rules:
 - Output Markdown only: no preamble, no explanations, no code fences.
 - Keep the original language. Do not translate.
 - Do not correct spelling, grammar or punctuation. Copy numbers, dates and amounts digit by digit.
-- Keep the line breaks and paragraphs of the original.
+- Write each line of the page on its own line, exactly where the original line breaks.
+- Separate paragraphs with one blank line. A new paragraph starts after a visibly larger vertical gap or where the first line is indented. Do not add blank lines anywhere else.
 - Use Markdown headings, lists, checkboxes (- [ ] / - [x]) and tables only where the page visibly has them.
 - Write crossed-out text as ~~text~~.
 - If a word or character cannot be read with confidence, write [?] in its place. Never guess.
